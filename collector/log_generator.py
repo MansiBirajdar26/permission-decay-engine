@@ -1,22 +1,25 @@
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
-# 🔥 YOUR REAL COMPARTMENT OCID
 COMPARTMENT_ID = "ocid1.compartment.oc1..aaaaaaaasftpx47cqbleovqq6wp6ca3w5cvtig6esdgojpqnv7heeg67plga"
 
+
 def generate_logs():
-    users = ["Mansi", "test_user", "guest"]
+    users = ["Mansi", "admin", "guest", "dev"]
     actions = ["CreateBucket", "DeleteBucket", "UpdatePolicy", "LaunchInstance"]
 
     events = []
 
     for _ in range(5):
+        # 🔥 simulate past usage (important for decay)
+        random_days = random.randint(0, 40)
+        timestamp = datetime.now() - timedelta(days=random_days)
+
         events.append({
             "user": random.choice(users),
             "action": random.choice(actions),
-            "resource": COMPARTMENT_ID,   # 🔥 REAL OCI ID USED HERE
-            "timestamp": str(datetime.now())
+            "resource": COMPARTMENT_ID,
+            "timestamp": timestamp.isoformat()
         })
 
-    print(f"🚀 Generated {len(events)} events (OCI Compartment)")
     return events
