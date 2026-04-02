@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>User Timeline</title>
+
+<style>
+body {
+    background:#020617;
+    color:white;
+    font-family:sans-serif;
+}
+
+.timeline {
+    padding:20px;
+}
+
+.event {
+    border-left:3px solid #3b82f6;
+    margin-bottom:15px;
+    padding-left:10px;
+}
+
+.time {
+    color:#94a3b8;
+    font-size:12px;
+}
+
+.high { border-color:#dc2626; }
+.medium { border-color:#ea580c; }
+.low { border-color:#16a34a; }
+
+</style>
+</head>
+
+<body>
+
+<h2 style="padding:20px;">User: {{ user }}</h2>
+
+<div class="timeline">
+
+{% for p in perms %}
+<div class="event 
+{% if p.score >= 85 %}high
+{% elif p.score >= 65 %}medium
+{% else %}low
+{% endif %}
+">
+    <div><b>{{ p.action }}</b> → {{ p.resource }}</div>
+    <div class="time">Score: {{ p.score }}</div>
+</div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>
