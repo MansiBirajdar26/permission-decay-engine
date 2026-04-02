@@ -1,6 +1,6 @@
 import time
 from collector.oci_collector import fetch_audit_logs
-from behavior_model.permission_tracker import build_permissions
+from processing.permission_tracker import build_permissions
 from engine.auto_revoke import auto_revoke_permission
 
 print("🚀 IAM Scheduler Running...")

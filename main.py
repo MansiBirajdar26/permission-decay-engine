@@ -1,6 +1,6 @@
 from config import MODE
 from database.db_manager import init_db
-from behavior_model.permission_tracker import build_permissions
+from processing.permission_tracker import build_permissions
 
 def run_real_mode():
     from collector.oci_collector import fetch_audit_logs

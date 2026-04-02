@@ -1,4 +1,4 @@
-from behavior_model.permission_tracker import build_permissions
+from processing.permission_tracker import build_permissions
 from database.db_manager import mark_as_revoked
 
 
