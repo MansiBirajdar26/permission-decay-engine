@@ -1,5 +1,5 @@
 from collector.log_generator import generate_logs
-from behavior_model.permission_tracker import process_event
+from processing.permission_tracker import process_event
 from processing.enforcement_engine import enforce_policy
 from processing.decay_engine import apply_decay
 from database.db_manager import insert_event
