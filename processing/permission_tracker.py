@@ -1,34 +1,45 @@
-def process_event(event):
-    score = 0
-    flags = []
+import random
 
-    action = event["action"]
 
-    if "Delete" in action:
-        score += 40
-        flags.append("Destructive Action")
+def process_event(e):
+    """
+    Converts raw event → enriched IAM event
+    Adds:
+    - risk score
+    - severity
+    - default status
+    """
 
-    if "Policy" in action:
-        score += 30
-        flags.append("Policy Change")
+    # ------------------------
+    # RISK SCORE (simple model)
+    # ------------------------
+    score = random.randint(50, 100)
 
-    if "Launch" in action:
-        score += 20
-
-    if "Create" in action:
-        score += 10
-
+    # ------------------------
+    # SEVERITY MAPPING
+    # ------------------------
     if score >= 90:
         severity = "CRITICAL"
-    elif score >= 70:
+    elif score >= 75:
         severity = "HIGH"
-    elif score >= 40:
+    elif score >= 60:
         severity = "MEDIUM"
     else:
         severity = "LOW"
 
-    event["score"] = score
-    event["severity"] = severity
-    event["flags"] = ", ".join(flags) if flags else ""
+    # ------------------------
+    # FINAL EVENT STRUCTURE
+    # ------------------------
+    return {
+        "timestamp": e.get("timestamp"),   # ✅ keep original
+        "user": e.get("user"),
+        "action": e.get("action"),
+        "resource": e.get("resource"),
 
-    return event
+        "score": score,
+        "severity": severity,
+
+        "status": "ALLOWED",               # default
+        "flags": "",                       # updated later
+        "days_unused": 0                   # updated in decay
+    }

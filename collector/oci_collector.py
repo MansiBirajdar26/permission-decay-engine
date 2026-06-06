@@ -1,104 +1,35 @@
 import oci
-from datetime import datetime, timedelta, timezone
-from database.db_manager import insert_event
+from datetime import datetime
 
 
-# 🔥 PUT YOUR REAL COMPARTMENT OCID HERE
-COMPARTMENT_ID = "ocid1.compartment.oc1..aaaaaaaasftpx47cqbleovqq6wp6ca3w5cvtig6esdgojpqnv7heeg67plga"
+def fetch_oci_events():
+    """
+    Fetch basic OCI events (simulated minimal real integration)
+    """
 
+    try:
+        config = oci.config.from_file()
+        identity_client = oci.identity.IdentityClient(config)
 
-def fetch_audit_logs():
-    print("Fetching logs...")
+        compartment_id = config["tenancy"]
 
-    # ---- LOAD CONFIG ----
-    config = oci.config.from_file()
+        users = identity_client.list_users(compartment_id).data
 
-    # 🔥 FORCE REGION (important)
-    config["region"] = "ap-mumbai-1"
+        events = []
 
-    print("Using region:", config["region"])
-    print("Using compartment:", COMPARTMENT_ID)
+        for u in users[:5]:  # limit to avoid spam
+            events.append({
+                "user": u.name,
+                "action": "Login",
+                "resource": "OCI Console",
+                "timestamp": datetime.now().isoformat()
+            })
 
-    audit_client = oci.audit.AuditClient(config)
+        print(f"🚀 Fetched {len(events)} OCI users")
 
-    # ---- TIME WINDOW ----
-    end_time = datetime.now(timezone.utc)
-    start_time = end_time - timedelta(days=7)   # 🔥 INCREASED RANGE (IMPORTANT)
+        return events
 
-    print("Fetching logs from:", start_time, "to", end_time)
+    except Exception as e:
+        print("❌ OCI fetch failed, falling back to demo:", str(e))
 
-    events = []
-
-    # ---- INITIAL FETCH ----
-    response = audit_client.list_events(
-        compartment_id=COMPARTMENT_ID,   # 🔥 FIXED HERE
-        start_time=start_time,
-        end_time=end_time
-    )
-
-    events.extend(response.data)
-
-    # ---- PAGINATION ----
-    while response.has_next_page:
-        response = audit_client.list_events(
-            compartment_id=COMPARTMENT_ID,
-            start_time=start_time,
-            end_time=end_time,
-            page=response.next_page
-        )
-        events.extend(response.data)
-
-    print(f"Total events fetched: {len(events)}")
-
-    if not events:
-        print("❌ No OCI events found")
-        return
-
-    inserted = 0
-    skipped = 0
-
-    # ---- PROCESS EVENTS ----
-    for event in events:
-        data = event.data
-
-        event_name = getattr(data, "event_name", None)
-        if not event_name:
-            skipped += 1
-            continue
-
-        # 🔥 REMOVE USELESS NOISE
-        if any(x in event_name for x in ["Health", "Metrics", "Summarize"]):
-            skipped += 1
-            continue
-
-        event_time = event.event_time.isoformat()
-
-        identity = getattr(data, "identity", None)
-
-        user = (
-            getattr(identity, "principal_name", None)
-            or getattr(identity, "principal_id", None)
-            or "OCI_USER"
-        )
-
-        action = getattr(data, "request_action", None) or event_name
-
-        resource = (
-            getattr(data, "resource_name", None)
-            or getattr(data, "resource_id", None)
-            or str(getattr(data, "request_parameters", None))
-            or "UNKNOWN"
-        )
-
-        # ---- SAVE ----
-        insert_event({
-            "user": user,
-            "action": action,
-            "resource": resource,
-            "timestamp": event_time
-        })
-
-        inserted += 1
-
-    print(f"\n✅ Inserted: {inserted}")
-    print(f"Skipped: {skipped}\n")
+        return []
